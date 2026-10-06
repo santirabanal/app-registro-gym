@@ -1,0 +1,41 @@
+body {margin:0; background:#0b0b0d; font-family:Inter,system-ui,sans-serif;}
+.gym-shell {--gym-bg:#0b0b0d;--gym-card:#19191c;--gym-nav:#111114;--gym-ink:#f2f2f0;--gym-muted:#a1a1aa;--gym-line:#303036;--gym-soft:#16233d;--gym-accent:#60a5fa; color-scheme:dark;min-height:100dvh;}
+.gym-shell[data-theme="light"] {--gym-bg:#f4f3f1;--gym-card:#fff;--gym-nav:#fff;--gym-ink:#16161a;--gym-muted:#66666e;--gym-line:#e4e2de;--gym-soft:#dbeafe;--gym-accent:#2563eb;color-scheme:light;}
+.gym-nav {display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px max(20px,calc((100vw - 1000px)/2));background:#111114;border-bottom:1px solid #242427;color:#f2f2f0;}
+.gym-nav button {font:inherit;color:#a1a1aa;border:0;background:transparent;padding:10px 12px;border-radius:8px;cursor:pointer;}
+.gym-nav .gym-brand {font-size:20px;font-weight:800;color:#f2f2f0;white-space:nowrap;}
+.gym-nav button[aria-current] {background:#16233d;color:#93c5fd;}
+.gym-nav button:focus-visible,.gym-modules button:focus-visible {outline:2px solid #60a5fa;outline-offset:3px;}
+.gym-home-surface {background:#0b0b0d;min-height:calc(100dvh - 80px);}
+.gym-home {max-width:1000px;margin:auto;padding:72px 24px;color:#f2f2f0;}
+.gym-home {position:relative;}
+.gym-theme-corner {position:absolute;top:20px;right:24px;display:flex;padding:6px;border:0;background:transparent;cursor:pointer;}
+.gym-theme-corner:focus-visible {outline:2px solid var(--gym-accent);outline-offset:3px;border-radius:20px;}
+.gym-eyebrow {font-size:12px;letter-spacing:.15em;color:#60a5fa;font-weight:700;}
+.gym-home h1 {font-size:clamp(30px,5vw,46px);letter-spacing:-.04em;margin:20px 0;}
+.gym-intro {color:#a1a1aa;line-height:1.6;}
+.gym-modules {display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:42px;}
+.gym-modules button {text-align:left;background:#19191c;border:1px solid #303036;border-radius:16px;padding:28px;color:inherit;font:inherit;cursor:pointer;}
+.gym-modules button:hover {border-color:#3b82f6;}
+.gym-icon {display:inline-grid;place-items:center;width:44px;height:44px;background:#16233d;color:#60a5fa;border-radius:12px;font-size:28px;}
+.gym-modules h2 {font-size:22px;margin-top:24px;}
+.gym-modules p {color:#a1a1aa;line-height:1.7;}
+.gym-action {display:block;color:#60a5fa;font-weight:600;margin-top:28px;}
+.gym-comparator {display:block;width:100%;height:calc(100dvh - 80px);min-height:600px;border:0;background:#0b0b0d;}
+@media(max-width:600px) {.gym-nav {flex-direction:column;padding:12px;gap:4px;}.gym-nav div {display:flex;}.gym-nav button {padding:10px;font-size:13px;}.gym-home {padding:36px 20px;}.gym-modules {grid-template-columns:1fr;}.gym-comparator {height:calc(100dvh - 112px);}}
+.gym-shell .gym-nav {background:var(--gym-nav);color:var(--gym-ink);border-color:var(--gym-line);}
+.gym-shell .gym-nav button {color:var(--gym-muted);}
+.gym-shell .gym-nav .gym-brand {color:var(--gym-ink);}
+.gym-shell .gym-nav button[aria-current] {background:var(--gym-soft);color:var(--gym-accent);}
+.gym-shell .gym-home-surface {background:var(--gym-bg);}
+.gym-shell .gym-home {color:var(--gym-ink);}
+.gym-shell .gym-intro,.gym-shell .gym-modules p {color:var(--gym-muted);}
+.gym-shell .gym-modules button {background:var(--gym-card);border-color:var(--gym-line);}
+.gym-shell .gym-icon {background:var(--gym-soft);color:var(--gym-accent);}
+.gym-shell .gym-eyebrow,.gym-shell .gym-action {color:var(--gym-accent);}
+.gym-theme-control {display:flex;align-items:center;gap:20px;margin-top:24px;font-size:14px;color:var(--gym-muted);}
+.gym-theme-control button {display:flex;align-items:center;gap:10px;background:transparent;border:0;color:var(--gym-ink);font:inherit;cursor:pointer;padding:8px;}
+.gym-toggle-track {width:44px;height:26px;border-radius:30px;background:#2563eb;position:relative;}
+.gym-toggle-track span {position:absolute;top:3px;left:21px;width:20px;height:20px;border-radius:50%;background:white;transition:left .15s;}
+[data-theme="light"] .gym-toggle-track {background:#d2cfc9;}
+[data-theme="light"] .gym-toggle-track span {left:3px;}

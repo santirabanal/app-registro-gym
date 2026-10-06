@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/training.js": {"maxDuration": 30},
+    "api/search.js": {"maxDuration": 60}
+  },
+  "rewrites": [
+    {"source":"/api/kv/:key","destination":"/api/training?key=:key"},
+    {"source":"/api/health","destination":"/api/training?health=1"},
+    {"source":"/suplementos/search","destination":"/api/search"},
+    {"source":"/suplementos/","destination":"/suplementos/index.html"}
+  ]
+}

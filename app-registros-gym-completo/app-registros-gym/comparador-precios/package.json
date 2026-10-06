@@ -1,0 +1,19 @@
+{
+  "name": "comparador-precios-suplementos",
+  "version": "1.0.0",
+  "description": "Backend que busca un suplemento en varias tiendas y compara precios",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5"
+  }
+}

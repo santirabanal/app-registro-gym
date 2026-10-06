@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Entornos / secretos
+.env
+.env.local
+**/.env
+.env.*
+!.env.example
+*-preview.png
+
+# Build
+dist/
+**/dist/
+
+# Logs
+npm-debug.log*
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comparador de precios — Suplementos</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="top-row">
+      <header>
+        <h1>Comparador de suplementos</h1>
+        <p class="subtitle">Buscá un producto y compará precio, ofertas y envío entre tiendas.</p>
+      </header>
+      <div class="tabs">
+        <button id="tab-search" class="active">Buscar</button>
+        <button id="tab-favorites">Favoritos</button>
+      </div>
+    </div>
+
+    <div id="search-view">
+      <form id="search-form" class="search-form">
+        <input
+          type="text"
+          id="query"
+          placeholder="ej. proteína 1kg, creatina, multivitamínico..."
+          autocomplete="off"
+          required
+          minlength="2"
+        />
+        <button type="submit">Buscar</button>
+      </form>
+
+      <div class="controls-row">
+        <div class="control-group">
+          <label for="sort-select">Ordenar por</label>
+          <select id="sort-select">
+            <option value="perkg">Precio/kg</option>
+            <option value="price">Precio</option>
+            <option value="brand">Marca</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Precio entre</label>
+          <input type="number" id="min-price" placeholder="Mín" min="0" />
+          <span>y</span>
+          <input type="number" id="max-price" placeholder="Máx" min="0" />
+        </div>
+      </div>
+
+      <div id="status" class="status" hidden></div>
+      <div id="recommendation" class="recommendation" hidden></div>
+
+      <div class="layout">
+        <div class="results-col">
+          <div id="results"></div>
+        </div>
+        <div id="detail-panel-wrap"></div>
+      </div>
+    </div>
+
+    <div id="favorites-view" hidden>
+      <div id="favorites-list"></div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

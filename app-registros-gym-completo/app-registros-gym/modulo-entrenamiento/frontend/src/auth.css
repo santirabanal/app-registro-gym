@@ -1,0 +1,7 @@
+.gym-auth {min-height:100dvh;background:#0b0b0d;color:#f2f2f0;display:grid;place-items:center;padding:24px;font-family:Inter,system-ui,sans-serif;}
+.gym-auth form {width:min(100%,400px);padding:28px;background:#19191c;border:1px solid #303036;border-radius:16px;}
+.gym-auth h1 {margin:0 0 20px;}.gym-auth p {line-height:1.5;color:#a1a1aa;}
+.gym-auth label {display:block;font-size:14px;margin:18px 0;}
+.gym-auth input {display:block;width:100%;box-sizing:border-box;padding:12px;margin-top:8px;background:#111114;color:#f2f2f0;border:1px solid #38383b;border-radius:8px;font:inherit;}
+.gym-auth button {width:100%;padding:12px;border:0;border-radius:8px;background:#2563eb;color:white;font:inherit;cursor:pointer;}
+.gym-auth .auth-secondary {background:transparent;color:#60a5fa;margin-top:12px;}.gym-auth button:disabled {opacity:.6;cursor:wait;}

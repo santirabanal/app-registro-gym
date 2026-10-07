@@ -32,7 +32,7 @@ export default function Dashboard({userId='local',onSignOut}) {
  function open(next) {setSection(next);setVisited(v=>({...v,[next]:true}));}
  return <div className="gym-shell" data-theme={dark?'dark':'light'}>
   <nav className="gym-nav" aria-label="Navegación principal">
-   <button className="gym-brand" onClick={()=>open('inicio')}>Mi Gym</button>
+   <button className="gym-brand" onClick={()=>open('inicio')}>Gymmi</button>
    <div>{[['inicio','Inicio'],['entrenamiento','Entrenamiento'],['suplementos','Suplementos']].map(([id,label])=><button key={id} aria-current={section===id?'page':undefined} onClick={()=>open(id)}>{label}</button>)}{onSignOut && <button onClick={onSignOut}>Salir</button>}</div>
   </nav>
   {section==='inicio' && <div className="gym-home-surface"><main className="gym-home">

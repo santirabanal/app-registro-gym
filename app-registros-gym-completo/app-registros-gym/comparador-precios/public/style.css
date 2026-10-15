@@ -1,18 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg: #0B0B0D;
-  --card: #19191C;
+  --bg: #141414;
+  --card: #242424;
   --card-hover: #202023;
-  --ink: #F2F2F0;
-  --ink-soft: #8E8E93;
-  --line: #242427;
-  --line-strong: #38383B;
-  --accent: #3B82F6;
-  --accent-soft: #16233D;
-  --up: #34C759;
-  --down: #FF453A;
-  --segment: #221F1E;
+  --ink: #F5F5F3;
+  --ink-soft: #AAA9A6;
+  --line: #333332;
+  --line-strong: #464642;
+  --accent: #6DAAF3;
+  --accent-soft: #2C3035;
+  --up: #62C6A0;
+  --down: #F08770;
+  --segment: #303030;
 }
 
 * { box-sizing: border-box; font-variant-numeric: tabular-nums; }
@@ -442,3 +442,18 @@ header h1 {
   .layout { flex-direction: column; }
   .detail-panel { width: 100%; position: static; }
 }
+
+/* Shared Gymmi visual language: neutral surfaces, compact cards and pill actions. */
+body {-webkit-font-smoothing:antialiased;}
+header h1 {font-size:26px;font-weight:700;letter-spacing:-.035em;}
+.tabs {border-radius:28px;background:var(--segment);}
+.tabs button {border-radius:24px;font-size:13px;}
+.tabs button.active {background:var(--ink);color:var(--bg);}
+.search-form input {border-radius:24px;background:var(--segment);padding:13px 18px;}
+.search-form button {border-radius:24px;background:var(--ink);color:var(--bg);font-weight:600;}
+.recommendation {background:var(--card);border:0;border-left:3px solid var(--accent);border-radius:8px;line-height:1.6;}
+.detail-panel {border-radius:10px;border-color:transparent;}
+button:focus-visible,a:focus-visible {outline:2px solid var(--accent);outline-offset:3px;}
+@media(max-width:600px) {.wrap {padding-top:28px;}header h1 {font-size:24px;}}
+
+.result-card {border-radius:10px;border-color:transparent;}.result-card.best {border-color:var(--accent);box-shadow:none;}

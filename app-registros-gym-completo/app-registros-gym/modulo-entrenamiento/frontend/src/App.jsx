@@ -5,31 +5,31 @@ import { storage } from "./storageApi.js";
 const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');";
 
 const LIGHT_THEME = {
-  bg: "#F4F3F1",
+  bg: "#F3F3F0",
   ink: "#16161A",
-  inkSoft: "#87868C",
-  line: "#E4E2DE",
-  lineStrong: "#D2CFC9",
+  inkSoft: "#686965",
+  line: "#DDDED8",
+  lineStrong: "#C7C9C0",
   accent: "#2563EB",
   accentSoft: "#DBEAFE",
   up: "#1E9E4A",
   down: "#D6362B",
   card: "#FFFFFF",
-  segment: "#EDEBE7",
+  segment: "#E5E6DF",
 };
 
 const DARK_THEME = {
-  bg: "#0B0B0D",
-  ink: "#F2F2F0",
-  inkSoft: "#8E8E93",
-  line: "#242427",
-  lineStrong: "#38383B",
-  accent: "#3B82F6",
-  accentSoft: "#16233D",
-  up: "#34C759",
-  down: "#FF453A",
-  card: "#19191C",
-  segment: "#221F1E",
+  bg: "#141414",
+  ink: "#F5F5F3",
+  inkSoft: "#AAA9A6",
+  line: "#333332",
+  lineStrong: "#464642",
+  accent: "#6DAAF3",
+  accentSoft: "#2C3035",
+  up: "#62C6A0",
+  down: "#F08770",
+  card: "#242424",
+  segment: "#303030",
 };
 
 const COLORS = { ...LIGHT_THEME };
@@ -145,11 +145,11 @@ export default function App({dark = false}) {
   if(loadError) return <div style={{background:COLORS.bg,color:COLORS.ink,padding:32,minHeight:'80vh'}} role="alert"><p>No se pudieron cargar los registros. Revisá la conexión y volvé a intentar.</p><button onClick={()=>setLoadAttempt(n=>n+1)}>Reintentar</button></div>;
 
   return (
-    <div style={{ background: COLORS.bg, minHeight: "100vh", fontFamily: "'Inter', -apple-system, system-ui, sans-serif", color: COLORS.ink }}>
+    <div className="gym-training" style={{ background: COLORS.bg, minHeight: "100vh", fontFamily: "'Inter', -apple-system, system-ui, sans-serif", color: COLORS.ink }}>
       <style>{`
         ${FONT_IMPORT}
-        * { box-sizing: border-box; font-variant-numeric: tabular-nums; }
-        input, select {
+        .gym-training * { box-sizing: border-box; font-variant-numeric: tabular-nums; }
+        .gym-training input, .gym-training select {
           font-family: inherit;
           font-size: 15px;
           font-weight: 500;
@@ -162,22 +162,22 @@ export default function App({dark = false}) {
           width: 100%;
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
-        input:focus, select:focus {
+        .gym-training input:focus, .gym-training select:focus {
           border-color: ${COLORS.accent};
           box-shadow: 0 0 0 3px ${COLORS.accentSoft};
         }
-        input::placeholder { color: ${COLORS.inkSoft}; }
-        button {
+        .gym-training input::placeholder { color: ${COLORS.inkSoft}; }
+        .gym-training button {
           font-family: inherit;
           font-weight: 600;
           cursor: pointer;
           transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
         }
         .btn-primary {
-          background: ${COLORS.accent};
-          color: #fff;
+          background: ${COLORS.ink};
+          color: ${COLORS.bg};
           border: none;
-          border-radius: 12px;
+          border-radius: 24px;
           padding: 10px 20px;
           font-size: 15px;
           font-weight: 600;
@@ -188,7 +188,7 @@ export default function App({dark = false}) {
           background: ${COLORS.card};
           border: 1px solid ${COLORS.line};
           color: ${COLORS.ink};
-          border-radius: 12px;
+          border-radius: 24px;
           padding: 9px 18px;
           font-size: 14px;
           font-weight: 500;
@@ -203,7 +203,7 @@ export default function App({dark = false}) {
           font-weight: 500;
         }
         .btn-text:hover { color: ${COLORS.down}; }
-        h1, h2, h3 { font-weight: 700; margin: 0; letter-spacing: -0.02em; }
+        .gym-training h1, .gym-training h2, .gym-training h3 { font-weight: 700; margin: 0; letter-spacing: -0.02em; }
       `}</style>
 
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "2.5rem 1.25rem 4rem" }}>
@@ -221,7 +221,7 @@ export default function App({dark = false}) {
             display: "inline-flex",
             marginTop: 24,
             background: COLORS.segment,
-            borderRadius: 10,
+            borderRadius: 24,
             padding: 3,
             gap: 2,
           }}
@@ -234,13 +234,13 @@ export default function App({dark = false}) {
               key={key}
               onClick={() => setTab(key)}
               style={{
-                background: tab === key ? COLORS.card : "transparent",
+                background: tab === key ? COLORS.ink : "transparent",
                 border: "none",
-                borderRadius: 8,
+                borderRadius: 24,
                 fontSize: 14,
                 fontWeight: 600,
                 padding: "7px 18px",
-                color: tab === key ? COLORS.ink : COLORS.inkSoft,
+                color: tab === key ? COLORS.bg : COLORS.inkSoft,
               }}
             >
               {label}
@@ -280,9 +280,9 @@ function Card({ children, style }) {
     <div
       style={{
         background: COLORS.card,
-        borderRadius: 20,
-        border: `1px solid ${COLORS.line}`,
-        padding: "1.5rem",
+        borderRadius: 10,
+        border: `1px solid transparent`,
+        padding: "1.25rem",
         marginBottom: 16,
         ...style,
       }}
@@ -724,10 +724,10 @@ function PesoChart({ registrosPeso, mes }) {
               <CartesianGrid stroke={COLORS.line} vertical={false} />
               <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: COLORS.inkSoft, fontFamily: 'inherit' }} interval={tickInterval} />
               <YAxis tick={{ fontSize: 11, fill: COLORS.inkSoft, fontFamily: 'inherit' }} domain={["dataMin - 1", "dataMax + 1"]} />
-              <Tooltip contentStyle={{ fontSize: 12, fontFamily: "inherit", background: COLORS.card, border: `1px solid ${COLORS.line}`, borderRadius: 10, color: COLORS.ink }} labelStyle={{ color: COLORS.ink }} itemStyle={{ color: COLORS.ink }} />
+              <Tooltip contentStyle={{ fontSize: 12, fontFamily: "inherit", background: COLORS.card, border: `1px solid transparent`, borderRadius: 10, color: COLORS.ink }} labelStyle={{ color: COLORS.ink }} itemStyle={{ color: COLORS.ink }} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Line type="monotone" dataKey="peso" name="Peso" stroke={COLORS.accent} strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="promedio" name="Promedio 4 sem." stroke={COLORS.lineStrong} strokeWidth={2} strokeDasharray="4 3" dot={false} />
+              <Line type="monotone" dataKey="promedio" name="Promedio 4 sem." stroke={COLORS.inkSoft} strokeWidth={2} strokeDasharray="4 3" dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -824,7 +824,7 @@ function EjercicioChart({ ejercicios, registrosEjercicio, mes }) {
                   <CartesianGrid stroke={COLORS.line} vertical={false} />
                   <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: COLORS.inkSoft, fontFamily: 'inherit' }} />
                   <YAxis tick={{ fontSize: 11, fill: COLORS.inkSoft, fontFamily: 'inherit' }} domain={["dataMin - 2", "dataMax + 2"]} />
-                  <Tooltip contentStyle={{ fontSize: 12, fontFamily: "inherit", background: COLORS.card, border: `1px solid ${COLORS.line}`, borderRadius: 10, color: COLORS.ink }} labelStyle={{ color: COLORS.ink }} itemStyle={{ color: COLORS.ink }} />
+                  <Tooltip contentStyle={{ fontSize: 12, fontFamily: "inherit", background: COLORS.card, border: `1px solid transparent`, borderRadius: 10, color: COLORS.ink }} labelStyle={{ color: COLORS.ink }} itemStyle={{ color: COLORS.ink }} />
                   <Line type="monotone" dataKey={metrica} name={metricaLabel[metrica]} stroke={COLORS.accent} strokeWidth={2} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>

@@ -204,9 +204,17 @@ export default function App({dark = false}) {
         }
         .btn-text:hover { color: ${COLORS.down}; }
         .gym-training h1, .gym-training h2, .gym-training h3 { font-weight: 700; margin: 0; letter-spacing: -0.02em; }
+        .gym-training-layout {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+          align-items: start;
+          gap: 20px;
+        }
+        .gym-training-layout > * { min-width: 0; }
+        .gym-training-layout > .gym-training-filter { grid-column: 1 / -1; }
       `}</style>
 
-      <div style={{ maxWidth: 640, margin: "0 auto", padding: "2.5rem 1.25rem 4rem" }}>
+      <div style={{ maxWidth: 1440, margin: "0 auto", padding: "2.5rem 1.25rem 4rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <h1 style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.02em" }}>Registro de entrenamiento</h1>
@@ -311,8 +319,8 @@ function HoyTab({
   const [fecha, setFecha] = useState(todayISO());
 
   return (
-    <div>
-      <div style={{ marginBottom: 20 }}>
+    <div className="gym-training-layout">
+      <div className="gym-training-filter">
         <label style={{ fontSize: 13, color: COLORS.inkSoft, display: "block", marginBottom: 4 }}>
           Fecha
         </label>
@@ -604,8 +612,8 @@ function ProgresoTab({ ejercicios, registrosPeso, registrosEjercicio }) {
   const [mes, setMes] = useState(todayISO().slice(0, 7));
 
   return (
-    <div>
-      <div style={{ marginBottom: 20 }}>
+    <div className="gym-training-layout">
+      <div className="gym-training-filter">
         <label style={{ fontSize: 13, color: COLORS.inkSoft, display: "block", marginBottom: 4 }}>
           Mes
         </label>

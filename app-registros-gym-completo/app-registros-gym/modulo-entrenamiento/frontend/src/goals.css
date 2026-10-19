@@ -1,0 +1,17 @@
+.gym-training .goal-note {color:inherit;opacity:.72;font-size:13px;line-height:1.6;margin:12px 0 18px;}
+.goal-form {background:var(--gym-card,#242424);border-radius:10px;padding:20px;color:var(--gym-ink,#f5f5f3);}
+.gym-training .goal-form h2 {font-size:17px;margin-bottom:12px;}
+.goal-fields {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:16px;}
+.goal-fields label,.goal-chart-type {display:flex;flex-direction:column;gap:7px;font-size:13px;}
+.goal-chart-type {max-width:240px;margin-bottom:18px;}
+.goal-form-actions {display:flex;gap:10px;flex-wrap:wrap;}
+.goal-form button:disabled {opacity:.55;cursor:wait;}
+.goal-chart-summary {display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;font-size:14px;}
+.goal-chart-summary span {opacity:.8;}
+.goal-legend {display:flex;flex-wrap:wrap;gap:12px;font-size:12px;}
+.goal-legend span {display:inline-flex;align-items:center;gap:6px;}
+.goal-legend i {width:9px;height:9px;border-radius:3px;}
+.goal-tooltip {padding:12px;border:1px solid;border-radius:8px;font-size:13px;}
+.goal-tooltip p {margin:8px 0;}
+.goal-empty {padding:12px 0;font-size:14px;line-height:1.6;}
+.gym-training button:focus-visible {outline:2px solid #6daaf3;outline-offset:3px;}

@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { storage } from "./storageApi.js";
+import Goals, {ChartType,ValueBars,GoalChart} from './Goals.jsx';
+import {exerciseSeries} from './goalMath.mjs';
 
 const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');";
 
@@ -97,6 +99,7 @@ export default function App({dark = false}) {
   const [ejercicios, setEjercicios] = useState([]);
   const [registrosPeso, setRegistrosPeso] = useState([]);
   const [registrosEjercicio, setRegistrosEjercicio] = useState([]);
+  const [goals,setGoals] = useState({weight:null,exercises:{}});
   const [error, setError] = useState("");
   const [loadError,setLoadError] = useState(false);
   const [loadAttempt,setLoadAttempt] = useState(0);
@@ -104,12 +107,14 @@ export default function App({dark = false}) {
     setLoaded(false);setLoadError(false);setError('');
     (async () => {
       try {
-        const [e,p,r] = await Promise.all([
+        const [e,p,r,g] = await Promise.all([
           safeGet("ejercicios"), safeGet("registros-peso"), safeGet("registros-ejercicio"),
+          safeGet("objetivos"),
         ]);
         setEjercicios(e || []);
         setRegistrosEjercicio(r || []);
         setRegistrosPeso(p || []);
+        setGoals({weight:g?.weight??null,exercises:g?.exercises??{}});
       } catch (err) {
         setLoadError(true);
         setError("No se pudieron cargar los datos guardados.");
@@ -131,6 +136,10 @@ export default function App({dark = false}) {
     } catch {
       setError("No se pudo guardar el cambio. Probá de nuevo.");
     }
+  }
+  async function saveGoals(next) {
+    await storage.set('objetivos',JSON.stringify(next));
+    setGoals(next);
   }
 
   if (!loaded) {
@@ -237,6 +246,7 @@ export default function App({dark = false}) {
           {[
             ["hoy", "Hoy"],
             ["progreso", "Progreso"],
+            ["objetivos", "Objetivos"],
           ].map(([key, label]) => (
             <button
               key={key}
@@ -270,11 +280,15 @@ export default function App({dark = false}) {
               registrosEjercicio={registrosEjercicio}
               setRegistrosEjercicio={(v) => persist("registros-ejercicio", v, setRegistrosEjercicio)}
             />
+          ) : tab === 'objetivos' ? (
+            <Goals goals={goals} onChange={saveGoals} ejercicios={ejercicios} registrosPeso={registrosPeso} registrosEjercicio={registrosEjercicio}/>
           ) : (
             <ProgresoTab
               ejercicios={ejercicios}
               registrosPeso={registrosPeso}
               registrosEjercicio={registrosEjercicio}
+              goals={goals}
+              onConfigure={()=>setTab('objetivos')}
             />
           )}
         </div>
@@ -608,7 +622,7 @@ function EjerciciosCard({ fecha, ejercicios, setEjercicios, registrosEjercicio, 
   );
 }
 
-function ProgresoTab({ ejercicios, registrosPeso, registrosEjercicio }) {
+function ProgresoTab({ ejercicios, registrosPeso, registrosEjercicio,goals,onConfigure }) {
   const [mes, setMes] = useState(todayISO().slice(0, 7));
 
   return (
@@ -620,14 +634,15 @@ function ProgresoTab({ ejercicios, registrosPeso, registrosEjercicio }) {
         <input type="month" value={mes} onChange={(e) => setMes(e.target.value)} style={{ maxWidth: 200 }} />
       </div>
 
-      <PesoChart registrosPeso={registrosPeso} mes={mes} />
-      <EjercicioChart ejercicios={ejercicios} registrosEjercicio={registrosEjercicio} mes={mes} />
+      <PesoChart registrosPeso={registrosPeso} mes={mes} goal={goals.weight} onConfigure={onConfigure}/>
+      <EjercicioChart ejercicios={ejercicios} registrosEjercicio={registrosEjercicio} mes={mes} goals={goals.exercises} onConfigure={onConfigure}/>
     </div>
   );
 }
 
-function PesoChart({ registrosPeso, mes }) {
+function PesoChart({ registrosPeso, mes,goal,onConfigure }) {
   const [rango, setRango] = useState("1");
+  const [chartType,setChartType]=useState('line');
 
   const ordenados = useMemo(
     () => [...registrosPeso].sort((a, b) => a.fecha.localeCompare(b.fecha)),
@@ -716,16 +731,17 @@ function PesoChart({ registrosPeso, mes }) {
         </div>
       </div>
 
+      <ChartType value={chartType} onChange={setChartType}/>
       {tendencia && (
-        <p style={{ fontSize: 14, marginBottom: 14, color: tendencia.delta > 0 ? COLORS.up : tendencia.delta < 0 ? COLORS.down : COLORS.inkSoft }}>
+        <p style={{ fontSize: 14, marginBottom: 14, color: COLORS.inkSoft }}>
           {tendencia.delta > 0 ? "+" : ""}
           {tendencia.delta}kg de {tendencia.delta >= 0 ? "ganancia" : "pérdida"} promedio en las últimas {tendencia.semanas} semanas
         </p>
       )}
 
-      {dataChart.length === 0 ? (
+      {chartType==='goal' ? <GoalChart records={ordenados.map(r=>({date:r.fecha,value:r.peso_kg}))} goal={goal} from={desdeStr} to={hastaStr} theme={COLORS} onConfigure={onConfigure}/> : dataChart.length === 0 ? (
         <p style={{ fontSize: 14, color: COLORS.inkSoft }}>No hay registros de peso en este período.</p>
-      ) : (
+      ) : chartType==='bar' ? <ValueBars data={dataChart} dataKey="peso" label="Peso (kg)" theme={COLORS}/> : (
         <div style={{ height: 260 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={dataChart} margin={{ left: -10, right: 10, top: 10, bottom: 0 }}>
@@ -750,7 +766,7 @@ function PesoChart({ registrosPeso, mes }) {
               <span>
                 {v.peso}kg
                 {v.delta !== null && (
-                  <span style={{ color: v.delta > 0 ? COLORS.up : v.delta < 0 ? COLORS.down : COLORS.inkSoft, marginLeft: 8 }}>
+                  <span style={{ color: COLORS.inkSoft, marginLeft: 8 }}>
                     ({v.delta > 0 ? "+" : ""}
                     {v.delta})
                   </span>
@@ -764,14 +780,15 @@ function PesoChart({ registrosPeso, mes }) {
   );
 }
 
-function EjercicioChart({ ejercicios, registrosEjercicio, mes }) {
+function EjercicioChart({ ejercicios, registrosEjercicio, mes,goals,onConfigure }) {
   const activos = ejercicios.filter((e) => e.activo);
   const [ejercicioId, setEjercicioId] = useState(activos[0]?.id || "");
   const [metrica, setMetrica] = useState("topset");
+  const [chartType,setChartType]=useState('line');
 
   useEffect(() => {
-    if (!ejercicioId && activos[0]) setEjercicioId(activos[0].id);
-  }, [activos.length]);
+    if (!activos.some(e=>e.id===ejercicioId)) setEjercicioId(activos[0]?.id||'');
+  }, [ejercicios,ejercicioId]);
 
   const registros = registrosEjercicio
     .filter((r) => r.ejercicio_id === ejercicioId && r.fecha.startsWith(mes))
@@ -815,7 +832,7 @@ function EjercicioChart({ ejercicios, registrosEjercicio, mes }) {
               <label style={{ fontSize: 13, color: COLORS.inkSoft, display: "block", marginBottom: 4 }}>
                 Métrica
               </label>
-              <select value={metrica} onChange={(e) => setMetrica(e.target.value)}>
+              <select value={chartType==='goal'?'topset':metrica} disabled={chartType==='goal'} onChange={(e) => setMetrica(e.target.value)}>
                 <option value="topset">Top set</option>
                 <option value="volumen">Volumen total</option>
                 <option value="rm1">1RM estimado</option>
@@ -823,9 +840,10 @@ function EjercicioChart({ ejercicios, registrosEjercicio, mes }) {
             </div>
           </div>
 
-          {dataChart.length === 0 ? (
+          <ChartType value={chartType} onChange={setChartType}/>
+          {chartType==='goal' ? <><p className="goal-note">El objetivo de kilaje se compara con el top set, independientemente de las repeticiones.</p><GoalChart records={exerciseSeries(registrosEjercicio,ejercicioId)} goal={goals?.[ejercicioId]} from={mes+'-01'} to={addDays(mesAnterior(mes,-1)+'-01',-1)} theme={COLORS} onConfigure={onConfigure}/></> : dataChart.length === 0 ? (
             <p style={{ fontSize: 14, color: COLORS.inkSoft }}>No hay registros de este ejercicio en el mes elegido.</p>
-          ) : (
+          ) : chartType==='bar' ? <ValueBars data={dataChart} dataKey={metrica} label={metricaLabel[metrica]} theme={COLORS}/> : (
             <div style={{ height: 260 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={dataChart} margin={{ left: -10, right: 10, top: 10, bottom: 0 }}>

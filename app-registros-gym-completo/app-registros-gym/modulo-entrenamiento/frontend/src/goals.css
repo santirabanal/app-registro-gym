@@ -15,3 +15,5 @@
 .goal-tooltip p {margin:8px 0;}
 .goal-empty {padding:12px 0;font-size:14px;line-height:1.6;}
 .gym-training button:focus-visible {outline:2px solid #6daaf3;outline-offset:3px;}
+
+.goal-movement-selector {display:flex;flex-direction:column;gap:7px;margin:18px 0;font-size:13px;}

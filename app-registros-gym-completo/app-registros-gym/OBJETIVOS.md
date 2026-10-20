@@ -16,14 +16,14 @@ fecha del punto exclusive) usando los días reales de cada mes. Al alcanzar el
 peso objetivo, la línea esperada se mantiene en la meta.
 
 La franja verde tiene 400 g de ancho total, constantes: ±0,2 kg alrededor del
-peso esperado en cada fecha. Los puntos reales se colorean:
+peso esperado en cada fecha. Las barras reales se colorean:
 
 - Verde dentro de la franja, incluidos los límites.
 - Amarillo si el avance está por debajo del plan.
 - Rojo si está por encima del plan.
 
 Al bajar, perder más de lo previsto es rojo y menos de lo previsto es amarillo.
-La línea azul conecta registros reales; no se inventan mediciones para los días
+Las barras representan registros reales; no se inventan mediciones para los días
 sin datos. La referencia y su franja sí se dibujan diariamente, incluso en fechas
 futuras del mes visible. Si falta un registro en la fecha inicial, el punto inicial
 configurado se muestra y se identifica como tal en el tooltip.

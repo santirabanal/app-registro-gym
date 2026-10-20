@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { storage } from "./storageApi.js";
-import Goals, {ChartType,ValueBars,GoalChart} from './Goals.jsx';
+import Goals, {ChartType,ValueBars,GoalChart,AverageChart} from './Goals.jsx';
 import {exerciseSeries} from './goalMath.mjs';
 
 const FONT_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');";
@@ -642,7 +642,7 @@ function ProgresoTab({ ejercicios, registrosPeso, registrosEjercicio,goals,onCon
 
 function PesoChart({ registrosPeso, mes,goal,onConfigure }) {
   const [rango, setRango] = useState("1");
-  const [chartType,setChartType]=useState('line');
+  const [chartType,setChartType]=useState(()=>goal?'goal':'line');
 
   const ordenados = useMemo(
     () => [...registrosPeso].sort((a, b) => a.fecha.localeCompare(b.fecha)),
@@ -739,7 +739,7 @@ function PesoChart({ registrosPeso, mes,goal,onConfigure }) {
         </p>
       )}
 
-      {chartType==='goal' ? <GoalChart records={ordenados.map(r=>({date:r.fecha,value:r.peso_kg}))} goal={goal} from={desdeStr} to={hastaStr} theme={COLORS} onConfigure={onConfigure}/> : dataChart.length === 0 ? (
+      {chartType==='average' ? <AverageChart records={ordenados.map(r=>({date:r.fecha,value:r.peso_kg}))} goal={goal} from={desdeStr} to={hastaStr} theme={COLORS} onConfigure={onConfigure}/> : chartType==='goal' ? <GoalChart records={ordenados.map(r=>({date:r.fecha,value:r.peso_kg}))} goal={goal} from={desdeStr} to={hastaStr} theme={COLORS} onConfigure={onConfigure}/> : dataChart.length === 0 ? (
         <p style={{ fontSize: 14, color: COLORS.inkSoft }}>No hay registros de peso en este período.</p>
       ) : chartType==='bar' ? <ValueBars data={dataChart} dataKey="peso" label="Peso (kg)" theme={COLORS}/> : (
         <div style={{ height: 260 }}>
@@ -784,7 +784,7 @@ function EjercicioChart({ ejercicios, registrosEjercicio, mes,goals,onConfigure 
   const activos = ejercicios.filter((e) => e.activo);
   const [ejercicioId, setEjercicioId] = useState(activos[0]?.id || "");
   const [metrica, setMetrica] = useState("topset");
-  const [chartType,setChartType]=useState('line');
+  const [chartType,setChartType]=useState(()=>goals?.[activos[0]?.id]?'goal':'line');
 
   useEffect(() => {
     if (!activos.some(e=>e.id===ejercicioId)) setEjercicioId(activos[0]?.id||'');
@@ -832,7 +832,7 @@ function EjercicioChart({ ejercicios, registrosEjercicio, mes,goals,onConfigure 
               <label style={{ fontSize: 13, color: COLORS.inkSoft, display: "block", marginBottom: 4 }}>
                 Métrica
               </label>
-              <select value={chartType==='goal'?'topset':metrica} disabled={chartType==='goal'} onChange={(e) => setMetrica(e.target.value)}>
+              <select value={['goal','average'].includes(chartType)?'topset':metrica} disabled={['goal','average'].includes(chartType)} onChange={(e) => setMetrica(e.target.value)}>
                 <option value="topset">Top set</option>
                 <option value="volumen">Volumen total</option>
                 <option value="rm1">1RM estimado</option>
@@ -841,7 +841,7 @@ function EjercicioChart({ ejercicios, registrosEjercicio, mes,goals,onConfigure 
           </div>
 
           <ChartType value={chartType} onChange={setChartType}/>
-          {chartType==='goal' ? <><p className="goal-note">El objetivo de kilaje se compara con el top set, independientemente de las repeticiones.</p><GoalChart records={exerciseSeries(registrosEjercicio,ejercicioId)} goal={goals?.[ejercicioId]} from={mes+'-01'} to={addDays(mesAnterior(mes,-1)+'-01',-1)} theme={COLORS} onConfigure={onConfigure}/></> : dataChart.length === 0 ? (
+          {chartType==='average' ? <AverageChart records={exerciseSeries(registrosEjercicio,ejercicioId)} goal={goals?.[ejercicioId]} from={mes+'-01'} to={addDays(mesAnterior(mes,-1)+'-01',-1)} theme={COLORS} onConfigure={onConfigure}/> : chartType==='goal' ? <><p className="goal-note">El objetivo de kilaje se compara con el top set, independientemente de las repeticiones.</p><GoalChart records={exerciseSeries(registrosEjercicio,ejercicioId)} goal={goals?.[ejercicioId]} from={mes+'-01'} to={addDays(mesAnterior(mes,-1)+'-01',-1)} theme={COLORS} onConfigure={onConfigure}/></> : dataChart.length === 0 ? (
             <p style={{ fontSize: 14, color: COLORS.inkSoft }}>No hay registros de este ejercicio en el mes elegido.</p>
           ) : chartType==='bar' ? <ValueBars data={dataChart} dataKey={metrica} label={metricaLabel[metrica]} theme={COLORS}/> : (
             <div style={{ height: 260 }}>

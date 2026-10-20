@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {validDate,validateGoal,dailyIdeal,splitAverage,averageSeries,exerciseSeries} from './goalMath.mjs';
+import {validDate,validateGoal,dailyIdeal,splitAverage,averageSeries,trajectorySeries,exerciseSeries} from './goalMath.mjs';
 const gain={kind:'weight',baseline:75,target:80,rate:1,startDate:'2026-11-01'};
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-9,`${a} != ${b}`);
 test('promedio diario acumulado: cambio total dividido por días, no último cambio',()=>{
@@ -49,4 +49,23 @@ test('evita dividir por cero y acepta objetivos anteriores sin migrar datos',()=
   assert.deepEqual(averageSeries([],gain,'x','2026-11-30'),[]);
   for(const patch of [{rate:-1},{target:74},{baseline:NaN},{rate:0},{startDate:'x'}])assert.ok(validateGoal({...gain,...patch}));
   assert.equal(validDate('2026-02-31'),false);assert.equal(validDate('2026-99-99'),false);
+});
+
+test('barras de objetivo comparan peso real con el esperado, sin alterar el promedio diario',()=>{
+  const rows=trajectorySeries([{date:'2026-11-11',value:75.4}],gain,'2026-11-01','2026-11-30');
+  const r=rows.find(r=>r.date==='2026-11-11');near(r.expected,75+10/30);assert.equal(r.value,75.4);assert.equal(r.status,'ideal');
+  assert.equal(rows.filter(r=>r.value!==null).length,1);assert.equal(rows[0].value,null);
+});
+test('color completo usa límites de ±200 g y dirección correcta al bajar',()=>{
+  const records=[{date:'2026-12-01',value:75.8},{date:'2026-12-02',value:76.7},{date:'2026-12-03',value:75.5}];
+  const rows=trajectorySeries(records,gain,'2026-12-01','2026-12-31');
+  near(rows[0].expected,76);assert.equal(rows[0].status,'ideal');assert.equal(rows[1].status,'above');assert.equal(rows[2].status,'below');
+  const loss=trajectorySeries([{date:'2026-11-16',value:74.2}],{...gain,target:70,rate:-1},'2026-11-01','2026-11-30');
+  assert.equal(loss.find(r=>r.date==='2026-11-16').status,'above');
+});
+test('trayectoria respeta fin de mes bisiesto, meta final y filtro sin reiniciarse',()=>{
+  const g={...gain,baseline:75,target:76,startDate:'2024-02-01'};
+  const rows=trajectorySeries([],g,'2024-03-01','2024-04-01');assert.ok(rows.every(r=>r.expected===76));
+  const loss={...g,target:74,rate:-1};assert.ok(trajectorySeries([],loss,'2024-03-01','2024-04-01').every(r=>r.expected===74));
+  assert.deepEqual(trajectorySeries([],gain,'2026-10-01','2026-10-31'),[]);
 });

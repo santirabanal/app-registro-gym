@@ -1,5 +1,5 @@
 const DAY = 86400000;
-export const TARGET_MARGIN = 0.2; // Monthly half-margin, converted to kg/day.
+export const TARGET_MARGIN = 0.2; // ±200 g for weight; monthly half-margin in average view.
 export function validDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
   const d=new Date(value+'T00:00:00Z');
@@ -17,6 +17,33 @@ export function dailyIdeal(monthlyRate,date) {
   const d=new Date(date+'T00:00:00Z');
   d.setUTCMonth(d.getUTCMonth()+1,0);
   return monthlyRate/d.getUTCDate();
+}
+export function trajectorySeries(records,goal,from,to) {
+  if(validateGoal(goal,goal?.kind==='exercise')||!validDate(from)||!validDate(to))return [];
+  const byDate=new Map();
+  for(const r of records)if(validDate(r.date)&&Number.isFinite(r.value))byDate.set(r.date,r.value);
+  const start=from>goal.startDate?from:goal.startDate;
+  const expectedAt=date=>{
+    let cursor=new Date(goal.startDate+'T00:00:00Z').getTime();
+    const end=new Date(date+'T00:00:00Z').getTime();
+    let change=0;
+    while(cursor<end){
+      const next=new Date(cursor);next.setUTCMonth(next.getUTCMonth()+1,1);
+      const stop=Math.min(next.getTime(),end);
+      change+=(stop-cursor)/DAY*dailyIdeal(goal.rate,new Date(cursor).toISOString().slice(0,10));
+      cursor=stop;
+    }
+    return goal.rate>0?Math.min(goal.baseline+change,goal.target):Math.max(goal.baseline+change,goal.target);
+  };
+  const points=[];
+  for(let time=new Date(start+'T00:00:00Z').getTime();time<=new Date(to+'T00:00:00Z').getTime();time+=DAY){
+    const date=new Date(time).toISOString().slice(0,10),expected=expectedAt(date);
+    const value=byDate.has(date)?byDate.get(date):null;
+    const delta=value===null?null:(value-expected)*Math.sign(goal.rate);
+    const status=delta===null?null:Math.abs(delta)<=TARGET_MARGIN+1e-9?'ideal':delta<0?'below':'above';
+    points.push({date,value,expected,lower:Math.max(0,expected-TARGET_MARGIN),upper:expected+TARGET_MARGIN,status});
+  }
+  return points;
 }
 // Split the magnitude of a daily average into stacked yellow/green/red portions.
 // Losses keep negative values so the stack remains on the correct side of zero.

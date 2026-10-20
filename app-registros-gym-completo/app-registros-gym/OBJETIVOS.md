@@ -1,7 +1,26 @@
-# Objetivos y promedio diario
+# Objetivos, barras de objetivo y promedio diario
 
 Objetivos mantiene un bloque de Peso corporal y un bloque de Movimientos clave
 con selector. Cada movimiento conserva su propia meta y ritmo mensual.
+
+## Barras de objetivo (vista principal)
+
+Cuando hay un objetivo configurado, Progreso abre esta vista por defecto.
+Cada barra muestra el peso real en kg, con un único color en toda su altura.
+La línea punteada muestra el peso esperado desde la fecha y peso iniciales,
+sumando cada día el ritmo mensual dividido por los días de su mes.
+La trayectoria se detiene al alcanzar la meta. Filtrar otro mes no la reinicia.
+
+- Verde: registro dentro de ±0,2 kg del peso esperado, límites incluidos.
+- Amarillo: avance menor al previsto.
+- Rojo: avance mayor al previsto.
+
+Para bajar, perder menos es amarillo y más es rojo. En ejercicios se usa el
+top set (mayor peso de una serie por día). La altura de la barra no representa
+un promedio ni una velocidad. Los días sin registros quedan vacíos, aunque
+la referencia del plan se dibuja para todo el período.
+
+## Promedio diario (vista secundaria)
 
 En Progreso, Promedio diario calcula para cada registro:
 

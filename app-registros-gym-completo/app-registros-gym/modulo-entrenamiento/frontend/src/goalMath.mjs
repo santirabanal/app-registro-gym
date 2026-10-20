@@ -1,5 +1,5 @@
 const DAY = 86400000;
-export const MONTHLY_MARGIN = 0.2; // 400 g wide green band, centered on the ideal.
+export const TARGET_MARGIN = 0.2; // ±200 g around the expected weight.
 export function validDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
   const d=new Date(value+'T00:00:00Z');
@@ -18,11 +18,11 @@ export function dailyIdeal(monthlyRate,date) {
   d.setUTCMonth(d.getUTCMonth()+1,0);
   return monthlyRate/d.getUTCDate();
 }
-// Sum the daily reference over (start,end], including each month's actual length.
+// Integrate daily growth over [start,end), using each calendar month's length.
 export function idealChange(start,end,monthlyRate) {
   if (!validDate(start)||!validDate(end)||end<=start) return 0;
-  let cursor=new Date(start+'T00:00:00Z').getTime()+DAY;
-  const until=new Date(end+'T00:00:00Z').getTime()+DAY;
+  let cursor=new Date(start+'T00:00:00Z').getTime();
+  const until=new Date(end+'T00:00:00Z').getTime();
   let result=0;
   while(cursor<until) {
     const d=new Date(cursor), next=new Date(cursor);
@@ -33,28 +33,25 @@ export function idealChange(start,end,monthlyRate) {
   }
   return result;
 }
-export function classifyPace(actual,ideal) {
-  const direction=Math.sign(ideal);
-  const delta=(actual-ideal)*direction;
-  return Math.abs(delta)<=MONTHLY_MARGIN+1e-9?'ideal':delta<0?'below':'above';
+export function classifyPosition(actual,expected,direction) {
+  const delta=(actual-expected)*Math.sign(direction);
+  return Math.abs(delta)<=TARGET_MARGIN+1e-9?'ideal':delta<0?'below':'above';
 }
-export function paceSeries(records, goal) {
-  if (validateGoal(goal,goal?.kind==='exercise')) return [];
-  const byDate = new Map();
-  for (const r of records) if (validDate(r.date) && Number.isFinite(r.value)) byDate.set(r.date,r.value);
-  let previous={date:goal.startDate,value:goal.baseline};
+export function trajectorySeries(records,goal,from,to) {
+  if(validateGoal(goal,goal?.kind==='exercise')||!validDate(from)||!validDate(to))return [];
+  const byDate=new Map();
+  for(const r of records)if(validDate(r.date)&&Number.isFinite(r.value))byDate.set(r.date,r.value);
+  const start=from>goal.startDate?from:goal.startDate;
+  const end=new Date(to+'T00:00:00Z').getTime();
   const points=[];
-  for(const [date,value] of [...byDate].sort(([a],[b])=>a.localeCompare(b))) {
-    if(date<=goal.startDate)continue;
-    const days=(new Date(date+'T00:00:00Z')-new Date(previous.date+'T00:00:00Z'))/DAY;
-    const change=value-previous.value;
-    // Normalize the interval to kg/month so the ideal stays horizontal even
-    // across months of different lengths. A day counts as 1/daysInItsMonth.
-    const monthFraction=idealChange(previous.date,date,1);
-    const rate=change/monthFraction;
-    const dailyRate=change/days;
-    if(Number.isFinite(rate))points.push({date,value,rate,dailyRate,idealRate:goal.rate,days,previousDate:previous.date,status:classifyPace(rate,goal.rate)});
-    previous={date,value};
+  for(let time=new Date(start+'T00:00:00Z').getTime();time<=end;time+=DAY) {
+    const date=new Date(time).toISOString().slice(0,10);
+    const planned=goal.baseline+idealChange(goal.startDate,date,goal.rate);
+    const expected=goal.rate>0?Math.min(planned,goal.target):Math.max(planned,goal.target);
+    const initial=date===goal.startDate&&!byDate.has(date);
+    const value=byDate.has(date)?byDate.get(date):initial?goal.baseline:null;
+    const lower=Math.max(0,expected-TARGET_MARGIN),upper=expected+TARGET_MARGIN;
+    points.push({date,value,expected,lower,upper,band:[lower,upper],initial,status:value===null?null:classifyPosition(value,expected,goal.rate)});
   }
   return points;
 }

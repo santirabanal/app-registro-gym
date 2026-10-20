@@ -1,28 +1,38 @@
 # Objetivos y gráficos
 
 Entrenamiento > Objetivos tiene dos bloques: Peso corporal y Movimientos clave.
-El segundo incluye un selector y conserva una meta independiente por movimiento.
-Se guarda peso final, ritmo mensual, fecha y peso inicial. El margen no es editable.
+El segundo permite seleccionar un ejercicio y conserva su objetivo por separado.
+Cada meta guarda peso final, ritmo mensual, fecha inicial y peso inicial.
 
-Progreso permite elegir Líneas, Barras o Ritmo objetivo. En ejercicios se compara
-el top set (mayor peso de una serie por día).
+Progreso ofrece Líneas, Barras y Recorrido del objetivo. Este último muestra
+peso real en kg frente al peso que debería llevar el usuario según su plan.
+No muestra una velocidad mensual ni compara con el registro inmediatamente anterior.
 
-Ritmo objetivo usa kg/mes en el eje Y:
+    peso esperado = peso inicial + avance ideal desde la fecha inicial
+    avance diario ideal = ritmo mensual / días de ese mes
 
-- Línea horizontal fija en el ritmo ideal mensual.
-- Franja verde fija de 400 g/mes de ancho total (ideal ±0,2 kg/mes).
-- Barras del ritmo observado entre registros, expresado en kg/mes.
+La referencia suma cada día transcurrido (desde el inicio inclusive hasta la
+fecha del punto exclusive) usando los días reales de cada mes. Al alcanzar el
+peso objetivo, la línea esperada se mantiene en la meta.
 
-Para un ideal de +1 kg/mes, +0,8 y +1,2 son verdes (límites incluidos).
-Por debajo es amarillo y por encima es rojo. Al bajar, perder más rápido
-que el límite es rojo y más lento es amarillo.
+La franja verde tiene 400 g de ancho total, constantes: ±0,2 kg alrededor del
+peso esperado en cada fecha. Los puntos reales se colorean:
 
-El ritmo observado es el cambio entre registros dividido por la fracción de mes
-transcurrida. Cada día vale 1/cantidad de días de su mes. Así el cálculo contempla
-febrero, años bisiestos e intervalos que cruzan de mes sin inclinar la referencia.
-No se inventan mediciones. El primer intervalo parte del inicio configurado;
-filtrar el mes visible conserva el registro previo aunque quede fuera del filtro.
+- Verde dentro de la franja, incluidos los límites.
+- Amarillo si el avance está por debajo del plan.
+- Rojo si está por encima del plan.
 
-La tolerancia antigua que pudiera estar guardada se ignora: siempre se usa ±0,2.
-Los objetivos usan la API existente y quedan separados por usuario autenticado.
+Al bajar, perder más de lo previsto es rojo y menos de lo previsto es amarillo.
+La línea azul conecta registros reales; no se inventan mediciones para los días
+sin datos. La referencia y su franja sí se dibujan diariamente, incluso en fechas
+futuras del mes visible. Si falta un registro en la fecha inicial, el punto inicial
+configurado se muestra y se identifica como tal en el tooltip.
+
+Cambiar el mes visible no reinicia el plan. En ejercicios se utiliza el top set
+(mayor peso de una serie por día). Los objetivos existentes siguen funcionando.
+No hace falta migrar la base; se conserva la API y la separación por usuario.
+
+Ejemplo: desde 75 kg el 1 de noviembre, con +1 kg/mes, el esperado es 75,33 kg
+el día 11 (10 días transcurridos), 75,67 el día 21 y 76 kg el 1 de diciembre.
+
 Los cálculos y límites se verifican con `npm test`.

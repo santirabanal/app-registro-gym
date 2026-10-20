@@ -1,5 +1,5 @@
 const DAY = 86400000;
-export const TARGET_MARGIN = 0.2; // ±200 g around the expected weight.
+export const TARGET_MARGIN = 0.2; // Monthly half-margin, converted to kg/day.
 export function validDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
   const d=new Date(value+'T00:00:00Z');
@@ -18,42 +18,32 @@ export function dailyIdeal(monthlyRate,date) {
   d.setUTCMonth(d.getUTCMonth()+1,0);
   return monthlyRate/d.getUTCDate();
 }
-// Integrate daily growth over [start,end), using each calendar month's length.
-export function idealChange(start,end,monthlyRate) {
-  if (!validDate(start)||!validDate(end)||end<=start) return 0;
-  let cursor=new Date(start+'T00:00:00Z').getTime();
-  const until=new Date(end+'T00:00:00Z').getTime();
-  let result=0;
-  while(cursor<until) {
-    const d=new Date(cursor), next=new Date(cursor);
-    next.setUTCMonth(next.getUTCMonth()+1,1);
-    const stop=Math.min(until,next.getTime());
-    result+=(stop-cursor)/DAY*dailyIdeal(monthlyRate,d.toISOString().slice(0,10));
-    cursor=stop;
-  }
-  return result;
+// Split the magnitude of a daily average into stacked yellow/green/red portions.
+// Losses keep negative values so the stack remains on the correct side of zero.
+export function splitAverage(average,ideal,margin) {
+  const direction=Math.sign(ideal),progress=average*direction;
+  const lower=Math.max(0,Math.abs(ideal)-margin),upper=Math.abs(ideal)+margin;
+  const status=progress<lower-1e-9?'below':progress>upper+1e-9?'above':'ideal';
+  if(progress<0)return {segmentBelow:average,segmentIdeal:0,segmentAbove:0,status};
+  return {
+    segmentBelow:Math.min(progress,lower)*direction,
+    segmentIdeal:Math.max(0,Math.min(progress,upper)-lower)*direction,
+    segmentAbove:Math.max(0,progress-upper)*direction,status,
+  };
 }
-export function classifyPosition(actual,expected,direction) {
-  const delta=(actual-expected)*Math.sign(direction);
-  return Math.abs(delta)<=TARGET_MARGIN+1e-9?'ideal':delta<0?'below':'above';
-}
-export function trajectorySeries(records,goal,from,to) {
+export function averageSeries(records,goal,from,to) {
   if(validateGoal(goal,goal?.kind==='exercise')||!validDate(from)||!validDate(to))return [];
+  const ideal=dailyIdeal(goal.rate,to),margin=dailyIdeal(TARGET_MARGIN,to);
   const byDate=new Map();
   for(const r of records)if(validDate(r.date)&&Number.isFinite(r.value))byDate.set(r.date,r.value);
-  const start=from>goal.startDate?from:goal.startDate;
-  const end=new Date(to+'T00:00:00Z').getTime();
-  const points=[];
-  for(let time=new Date(start+'T00:00:00Z').getTime();time<=end;time+=DAY) {
-    const date=new Date(time).toISOString().slice(0,10);
-    const planned=goal.baseline+idealChange(goal.startDate,date,goal.rate);
-    const expected=goal.rate>0?Math.min(planned,goal.target):Math.max(planned,goal.target);
-    const initial=date===goal.startDate&&!byDate.has(date);
-    const value=byDate.has(date)?byDate.get(date):initial?goal.baseline:null;
-    const lower=Math.max(0,expected-TARGET_MARGIN),upper=expected+TARGET_MARGIN;
-    points.push({date,value,expected,lower,upper,band:[lower,upper],initial,status:value===null?null:classifyPosition(value,expected,goal.rate)});
-  }
-  return points;
+  return [...byDate].sort(([a],[b])=>a.localeCompare(b)).flatMap(([date,value])=>{
+    if(date<=goal.startDate||date<from||date>to)return [];
+    const time=new Date(date+'T00:00:00Z').getTime();
+    const days=(time-new Date(goal.startDate+'T00:00:00Z'))/DAY;
+    const change=value-goal.baseline,average=change/days;
+    if(!Number.isFinite(average))return [];
+    return [{date,time,value,days,change,average,ideal,margin,...splitAverage(average,ideal,margin)}];
+  });
 }
 export function exerciseSeries(records, exerciseId) {
   const daily = new Map();

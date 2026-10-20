@@ -1,38 +1,38 @@
-# Objetivos y gráficos
+# Objetivos y promedio diario
 
-Entrenamiento > Objetivos tiene dos bloques: Peso corporal y Movimientos clave.
-El segundo permite seleccionar un ejercicio y conserva su objetivo por separado.
-Cada meta guarda peso final, ritmo mensual, fecha inicial y peso inicial.
+Objetivos mantiene un bloque de Peso corporal y un bloque de Movimientos clave
+con selector. Cada movimiento conserva su propia meta y ritmo mensual.
 
-Progreso ofrece Líneas, Barras y Recorrido del objetivo. Este último muestra
-peso real en kg frente al peso que debería llevar el usuario según su plan.
-No muestra una velocidad mensual ni compara con el registro inmediatamente anterior.
+En Progreso, Promedio diario calcula para cada registro:
 
-    peso esperado = peso inicial + avance ideal desde la fecha inicial
-    avance diario ideal = ritmo mensual / días de ese mes
+    promedio diario = (peso registrado - peso inicial del objetivo) / días transcurridos
 
-La referencia suma cada día transcurrido (desde el inicio inclusive hasta la
-fecha del punto exclusive) usando los días reales de cada mes. Al alcanzar el
-peso objetivo, la línea esperada se mantiene en la meta.
+Es un promedio acumulado desde la fecha inicial, ponderado por tiempo transcurrido.
+No es el salto desde la medición anterior ni el promedio simple de los pesos.
+No se divide por cero: la fecha inicial no genera una barra.
 
-La franja verde tiene 400 g de ancho total, constantes: ±0,2 kg alrededor del
-peso esperado en cada fecha. Las barras reales se colorean:
+El eje Y usa gramos/día. La línea horizontal ideal es el ritmo mensual dividido
+por los días del mes seleccionado (en la vista de 3 meses se usa el último mes).
+La tolerancia fija mensual de ±200 g se convierte de la misma manera a g/día.
 
-- Verde dentro de la franja, incluidos los límites.
-- Amarillo si el avance está por debajo del plan.
-- Rojo si está por encima del plan.
+Cada barra se divide en partes apiladas:
 
-Al bajar, perder más de lo previsto es rojo y menos de lo previsto es amarillo.
-Las barras representan registros reales; no se inventan mediciones para los días
-sin datos. La referencia y su franja sí se dibujan diariamente, incluso en fechas
-futuras del mes visible. Si falta un registro en la fecha inicial, el punto inicial
-configurado se muestra y se identifica como tal en el tooltip.
+- Amarillo hasta el límite inferior del rango ideal.
+- Verde para la parte comprendida dentro del rango.
+- Rojo únicamente para la parte que excede el límite superior.
 
-Cambiar el mes visible no reinicia el plan. En ejercicios se utiliza el top set
-(mayor peso de una serie por día). Los objetivos existentes siguen funcionando.
-No hace falta migrar la base; se conserva la API y la separación por usuario.
+La suma de las tres partes es el promedio real. Si está por debajo del rango,
+la barra es toda amarilla; si está dentro, incluye base amarilla y tramo verde;
+si excede el rango, incluye también el tramo rojo. Los colores son tramos, no
+una calificación uniforme de toda la barra. El tooltip muestra el estado global.
 
-Ejemplo: desde 75 kg el 1 de noviembre, con +1 kg/mes, el esperado es 75,33 kg
-el día 11 (10 días transcurridos), 75,67 el día 21 y 76 kg el 1 de diciembre.
+Al bajar, tanto la referencia como las partes son negativas. Un cambio en la
+dirección contraria al objetivo es amarillo al otro lado de cero.
 
-Los cálculos y límites se verifican con `npm test`.
+Solo los días con registros generan barras. Los días sin datos cuentan en el
+tiempo transcurrido, pero no se inventan mediciones. Cambiar el filtro mensual
+no reinicia el promedio ni modifica los registros anteriores.
+
+No hace falta migrar los objetivos existentes ni modificar la base de datos.
+Se conserva la separación por usuario autenticado. `npm test` verifica cálculos,
+suma de segmentos, límites y pérdida de peso.

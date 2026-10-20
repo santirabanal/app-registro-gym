@@ -1,8 +1,8 @@
 import {useState} from 'react';
-import {BarChart,ComposedChart,Line,Bar,Cell,ReferenceLine,CartesianGrid,XAxis,YAxis,Tooltip,ResponsiveContainer} from 'recharts';
-import {validateGoal,paceSeries,exerciseSeries} from './goalMath.mjs';
+import {BarChart,Bar,Cell,ReferenceArea,ReferenceLine,CartesianGrid,XAxis,YAxis,Tooltip,ResponsiveContainer} from 'recharts';
+import {validateGoal,paceSeries,exerciseSeries,MONTHLY_MARGIN} from './goalMath.mjs';
 import './goals.css';
-const labels={below:'Por debajo del ideal diario',ideal:'Al ritmo ideal diario',above:'Por encima del ideal diario'};
+const labels={below:'Por debajo del ritmo',ideal:'Dentro del ideal',above:'Por encima del ritmo'};
 const colors={below:'#EFC65B',ideal:'#62C6A0',above:'#F08770'};
 const fmt=value=>Number(value.toFixed(2)).toLocaleString('es-AR');
 export function ChartType({value,onChange}) {
@@ -16,20 +16,22 @@ export function GoalChart({records,goal,from,to,theme,onConfigure}) {
   const series=paceSeries(records,goal).filter(r=>r.date>=from && r.date<=to);
   const loss=goal.rate<0;
   const reached=series.length && (loss?series.at(-1).value<=goal.target:series.at(-1).value>=goal.target);
-  const dailyFmt=value=>Number(value.toFixed(4)).toLocaleString('es-AR');
+  const lower=goal.rate-MONTHLY_MARGIN,upper=goal.rate+MONTHLY_MARGIN;
+  const extent=[0,lower,upper,...series.map(r=>r.rate)];
+  const pad=Math.max(.1,(Math.max(...extent)-Math.min(...extent))*.1);
+  const domain=[Math.min(...extent)-pad,Math.max(...extent)+pad];
   return <section className="goal-chart">
     <div className="goal-chart-summary"><strong>Meta: {fmt(goal.target)} kg</strong><span>Ideal: {goal.rate>0?'+':''}{fmt(goal.rate)} kg/mes</span></div>
-    <p className="goal-note">Avance diario: cambio desde el registro anterior ÷ días transcurridos. La línea verde indica el ideal diario: objetivo mensual ÷ días del mes.</p>
-    {series.length ? <><div style={{height:280}}><ResponsiveContainer width="100%" height="100%"><ComposedChart data={series} margin={{left:0,right:12,top:12,bottom:8}}>
+    <p className="goal-note">La línea horizontal marca tu ritmo ideal en kg/mes. La franja verde admite ±0,2 kg/mes (400 g de ancho total). Cada barra muestra el ritmo equivalente entre dos registros.</p>
+    {series.length ? <><div style={{height:280}}><ResponsiveContainer width="100%" height="100%"><BarChart data={series} margin={{left:0,right:12,top:12,bottom:8}}>
       <CartesianGrid stroke={theme.line} vertical={false}/><XAxis dataKey="date" tickFormatter={d=>d.slice(5).split('-').reverse().join('/')} tick={{fontSize:11,fill:theme.inkSoft}} minTickGap={24}/>
-      <YAxis tick={{fontSize:11,fill:theme.inkSoft}} tickFormatter={dailyFmt} width={66}/>
-      <Tooltip cursor={{fill:theme.segment}} content={({active,payload})=>{if(!active||!payload?.length)return null;const r=payload[0].payload;return <div className="goal-tooltip" style={{background:theme.card,color:theme.ink,borderColor:theme.line}}><strong>{r.date.split('-').reverse().join('/')}</strong><p>{fmt(r.value)} kg · {r.days} {r.days===1?'día':'días'} desde {r.previousDate.split('-').reverse().join('/')}</p><p>Real: {dailyFmt(r.rate)} kg/día</p><p>Ideal: {dailyFmt(r.idealRate)} kg/día</p><span style={{color:colors[r.status]}}>{labels[r.status]}</span></div>;}}/>
-      <ReferenceLine y={0} stroke={theme.inkSoft}/>
-      <Bar dataKey="rate" name="Avance real (kg/día)" maxBarSize={28} radius={[2,2,0,0]}>{series.map(r=><Cell key={r.date} fill={colors[r.status]}/>)}</Bar>
-      <Line dataKey="idealRate" name="Ideal diario (kg/día)" type="linear" stroke={colors.ideal} strokeWidth={2} strokeDasharray="4 4" dot={{r:3}} isAnimationActive={false}/>
-    </ComposedChart></ResponsiveContainer></div><p className="goal-note">Último avance: <strong style={{color:colors[series.at(-1).status]}}>{dailyFmt(series.at(-1).rate)} kg/día · {labels[series.at(-1).status]}</strong>{reached?' · Peso objetivo alcanzado. Revisá tu próximo objetivo.':''}</p></>:<p className="goal-note">No hay mediciones posteriores al inicio del objetivo en este período. Elegí otro mes o registrá una nueva medición.</p>}
+      <YAxis domain={domain} tick={{fontSize:11,fill:theme.inkSoft}} tickFormatter={fmt} width={54}/>
+      <Tooltip cursor={{fill:theme.segment}} content={({active,payload})=>{if(!active||!payload?.length)return null;const r=payload[0].payload;return <div className="goal-tooltip" style={{background:theme.card,color:theme.ink,borderColor:theme.line}}><strong>{r.date.split('-').reverse().join('/')}</strong><p>{fmt(r.value)} kg · {r.days} {r.days===1?'día':'días'} desde {r.previousDate.split('-').reverse().join('/')}</p><p>Ritmo: {fmt(r.rate)} kg/mes</p><p>Ideal: {fmt(goal.rate)} kg/mes</p><p>Zona verde: {fmt(lower)} a {fmt(upper)} kg/mes</p><span style={{color:colors[r.status]}}>{labels[r.status]}</span></div>;}}/>
+      <ReferenceArea y1={lower} y2={upper} fill={colors.ideal} fillOpacity={.15}/><ReferenceLine y={0} stroke={theme.inkSoft}/><ReferenceLine y={goal.rate} stroke={colors.ideal} strokeWidth={2} strokeDasharray="4 4" label={{value:`Ideal ${fmt(goal.rate)} kg/mes`,position:'insideTopRight',fill:theme.ink,fontSize:11}}/>
+      <Bar dataKey="rate" name="Ritmo (kg/mes)" maxBarSize={28} radius={[2,2,0,0]}>{series.map(r=><Cell key={r.date} fill={colors[r.status]}/>)}</Bar>
+    </BarChart></ResponsiveContainer></div><p className="goal-note">Último ritmo: <strong style={{color:colors[series.at(-1).status]}}>{fmt(series.at(-1).rate)} kg/mes · {labels[series.at(-1).status]}</strong>{reached?' · Peso objetivo alcanzado. Revisá tu próximo objetivo.':''}</p></>:<p className="goal-note">No hay mediciones posteriores al inicio del objetivo en este período. Elegí otro mes o registrá una nueva medición.</p>}
     <div className="goal-legend">{Object.entries(labels).map(([key,label])=><span key={key}><i style={{background:colors[key]}}/>{label}</span>)}</div>
-    <p className="goal-note">Sin margen: verde al coincidir con el ideal, amarillo si el avance es menor y rojo si es mayor. Para bajar, una pérdida más rápida es roja. Si faltan registros, se usa el promedio diario del intervalo y el ideal de cada mes atravesado; no se inventan mediciones.</p>
+    <p className="goal-note">Verde dentro de la franja, amarillo por debajo y rojo por encima del ritmo. Para bajar, perder más rápido que el límite es rojo. El cálculo contempla los días entre registros y la duración de cada mes; no se inventan mediciones.</p>
     <button className="btn-text" onClick={onConfigure}>Editar objetivo →</button>
   </section>;
 }
@@ -45,13 +47,13 @@ function GoalForm({goal,records,title,exercise,selector,onSave,onDelete}) {
     <label>Ritmo ideal (kg/mes)<input type="number" required step="any" placeholder={exercise?'Ej. 2.5':'Ej. 1 o -1'} {...field('rate')}/></label>
     <label>Fecha de inicio<input type="date" required {...field('startDate')}/></label>
     <label>Peso al inicio (kg)<input type="number" required min={exercise?0:.01} step="any" {...field('baseline')}/></label>
-  </div><p className="goal-note">Ejemplo: +1 kg/mes equivale a 0,0323 kg/día en un mes de 31 días. Para bajar, usá un ritmo negativo. El punto inicial se precarga con el primer registro disponible; podés cambiarlo.</p><div className="goal-form-actions"><button className="btn-primary" disabled={busy}>{busy?'Guardando…':'Guardar objetivo'}</button>{goal&&<button type="button" className="btn-ghost" disabled={busy} onClick={remove}>Eliminar objetivo</button>}</div>{message&&<p role="status">{message}</p>}</form>;
+  </div><p className="goal-note">Ejemplo: para +1 kg/mes, la zona verde va de +0,8 a +1,2 kg/mes. Para bajar, usá un ritmo negativo. El punto inicial se precarga con el primer registro disponible; podés cambiarlo.</p><div className="goal-form-actions"><button className="btn-primary" disabled={busy}>{busy?'Guardando…':'Guardar objetivo'}</button>{goal&&<button type="button" className="btn-ghost" disabled={busy} onClick={remove}>Eliminar objetivo</button>}</div>{message&&<p role="status">{message}</p>}</form>;
 }
 export default function Goals({goals,onChange,ejercicios,registrosPeso,registrosEjercicio}) {
   const active=ejercicios.filter(e=>e.activo);
   const [selectedId,setSelectedId]=useState(active[0]?.id??'');
   const selected=active.find(e=>e.id===selectedId)??active[0];
-  return <><p className="goal-note">Tus objetivos se guardan en tu cuenta. Definí el peso final y el ritmo mensual; el gráfico lo convierte en avance ideal diario según los días de cada mes.</p><div className="gym-training-layout">
+  return <><p className="goal-note">Tus objetivos se guardan en tu cuenta. Definí el peso final y el ritmo mensual; el gráfico compara tu ritmo con una línea horizontal y una zona verde fija de ±0,2 kg/mes.</p><div className="gym-training-layout">
     <GoalForm key="weight" title="Peso corporal" goal={goals.weight} records={registrosPeso.map(r=>({date:r.fecha,value:r.peso_kg})).sort((a,b)=>a.date.localeCompare(b.date))} onSave={weight=>onChange({...goals,weight})} onDelete={()=>onChange({...goals,weight:null})}/>
     {selected ? <GoalForm key={selected.id} exercise title="Movimientos clave" selector={<label className="goal-movement-selector">Movimiento<select value={selected.id} onChange={e=>setSelectedId(e.target.value)}>{active.map(e=><option key={e.id} value={e.id}>{e.nombre}</option>)}</select></label>} goal={goals.exercises?.[selected.id]} records={exerciseSeries(registrosEjercicio,selected.id)} onSave={goal=>onChange({...goals,exercises:{...goals.exercises,[selected.id]:goal}})} onDelete={()=>{const next={...goals.exercises};delete next[selected.id];return onChange({...goals,exercises:next});}}/> : <p className="goal-note">Agregá un ejercicio en Hoy para definir su objetivo de kilaje.</p>}
   </div></>;

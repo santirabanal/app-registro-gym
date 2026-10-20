@@ -1,33 +1,28 @@
 # Objetivos y gráficos
 
-En Entrenamiento > Objetivos hay dos bloques: Peso corporal y Movimientos clave.
-El segundo incluye un selector de ejercicio y conserva una meta independiente
-para cada movimiento. Cada objetivo guarda peso final, ritmo en kg/mes, fecha
-inicial y peso inicial. No hay margen ideal. Los objetivos antiguos siguen
-funcionando; el margen que tuvieran almacenado ya no se utiliza.
+Entrenamiento > Objetivos tiene dos bloques: Peso corporal y Movimientos clave.
+El segundo incluye un selector y conserva una meta independiente por movimiento.
+Se guarda peso final, ritmo mensual, fecha y peso inicial. El margen no es editable.
 
-En Progreso, ambos bloques permiten elegir Líneas, Barras o Ritmo objetivo.
-Para ejercicios, el objetivo compara el top set (mayor peso de una serie por día).
+Progreso permite elegir Líneas, Barras o Ritmo objetivo. En ejercicios se compara
+el top set (mayor peso de una serie por día).
 
-Cada barra de Ritmo objetivo muestra:
+Ritmo objetivo usa kg/mes en el eje Y:
 
-    avance diario real = (peso actual - peso anterior) / días transcurridos
-    ideal diario = objetivo mensual / cantidad de días de ese mes
+- Línea horizontal fija en el ritmo ideal mensual.
+- Franja verde fija de 400 g/mes de ancho total (ideal ±0,2 kg/mes).
+- Barras del ritmo observado entre registros, expresado en kg/mes.
 
-Si los registros abarcan varios meses, se suma el ideal de cada día del intervalo
-usando la duración real de su mes y se divide por el total de días. La referencia
-es el intervalo después del registro anterior hasta el actual, inclusive.
-La línea verde representa ese ideal. No se generan mediciones para días sin datos.
-El primer intervalo parte de la fecha y peso inicial configurados. Cambiar el mes
-visible conserva el registro anterior, aunque quede fuera del filtro.
+Para un ideal de +1 kg/mes, +0,8 y +1,2 son verdes (límites incluidos).
+Por debajo es amarillo y por encima es rojo. Al bajar, perder más rápido
+que el límite es rojo y más lento es amarillo.
 
-- Amarillo: avance menor al ideal diario.
-- Verde: avance igual al ideal diario (solo se ignora ruido de punto flotante).
-- Rojo: avance mayor al ideal diario.
+El ritmo observado es el cambio entre registros dividido por la fracción de mes
+transcurrida. Cada día vale 1/cantidad de días de su mes. Así el cálculo contempla
+febrero, años bisiestos e intervalos que cruzan de mes sin inclinar la referencia.
+No se inventan mediciones. El primer intervalo parte del inicio configurado;
+filtrar el mes visible conserva el registro previo aunque quede fuera del filtro.
 
-Para bajar de peso, perder más rápido es rojo y más lento es amarillo. Los colores
-representan el criterio del usuario. El peso final se muestra como meta y se indica
-cuando se alcanza; no cambia automáticamente el ritmo.
-
-Los objetivos usan la clave `objetivos` de la API existente, separados por usuario.
-Los cálculos, cambios de mes y años bisiestos se verifican con `npm test`.
+La tolerancia antigua que pudiera estar guardada se ignora: siempre se usa ±0,2.
+Los objetivos usan la API existente y quedan separados por usuario autenticado.
+Los cálculos y límites se verifican con `npm test`.

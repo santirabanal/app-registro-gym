@@ -1,4 +1,5 @@
 const DAY = 86400000;
+export const MONTHLY_MARGIN = 0.2; // 400 g wide green band, centered on the ideal.
 export function validDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
   const d=new Date(value+'T00:00:00Z');
@@ -35,8 +36,7 @@ export function idealChange(start,end,monthlyRate) {
 export function classifyPace(actual,ideal) {
   const direction=Math.sign(ideal);
   const delta=(actual-ideal)*direction;
-  // Only floating-point noise is ignored; there is no ideal margin.
-  return Math.abs(delta)<1e-9?'ideal':delta<0?'below':'above';
+  return Math.abs(delta)<=MONTHLY_MARGIN+1e-9?'ideal':delta<0?'below':'above';
 }
 export function paceSeries(records, goal) {
   if (validateGoal(goal,goal?.kind==='exercise')) return [];
@@ -47,9 +47,13 @@ export function paceSeries(records, goal) {
   for(const [date,value] of [...byDate].sort(([a],[b])=>a.localeCompare(b))) {
     if(date<=goal.startDate)continue;
     const days=(new Date(date+'T00:00:00Z')-new Date(previous.date+'T00:00:00Z'))/DAY;
-    const rate=(value-previous.value)/days;
-    const idealRate=idealChange(previous.date,date,goal.rate)/days;
-    if(Number.isFinite(rate))points.push({date,value,rate,idealRate,days,previousDate:previous.date,status:classifyPace(rate,idealRate)});
+    const change=value-previous.value;
+    // Normalize the interval to kg/month so the ideal stays horizontal even
+    // across months of different lengths. A day counts as 1/daysInItsMonth.
+    const monthFraction=idealChange(previous.date,date,1);
+    const rate=change/monthFraction;
+    const dailyRate=change/days;
+    if(Number.isFinite(rate))points.push({date,value,rate,dailyRate,idealRate:goal.rate,days,previousDate:previous.date,status:classifyPace(rate,goal.rate)});
     previous={date,value};
   }
   return points;
